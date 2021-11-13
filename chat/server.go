@@ -88,7 +88,7 @@ func (s *server) msg(c *client, args []string) {
 		return
 	}
 
-	c.room.broadcast(c, c.username+"- "+strings.Join(args[1:], " "))
+	c.room.broadcast(c, c.username+": "+strings.Join(args, " "))
 }
 
 func (s *server) quit(c *client, args []string) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"net"
 	"strings"
 )
@@ -21,15 +22,10 @@ func (c *client) readInput() {
 		}
 
 		msg = strings.Trim(msg, "\r\n")
+
 		args := strings.Split(msg, " ")
+		cmd := strings.TrimSpace(args[0])
 
-		var cmd string
-
-		if args[0][0] != '/'{
-			cmd = strings.TrimSpace(args[0])
-		}else{
-			cmd = msg
-		}
 		switch cmd {
 		case "/login":
 			c.commands <- command{
@@ -56,10 +52,14 @@ func (c *client) readInput() {
 				args:   args,
 			}
 		default:
-			c.commands <- command{
-				id:     CMD_MSG,
-				client: c,
-				args:   args,
+			if cmd[0] == '/' {
+				c.err(fmt.Errorf("Unknown command: %s", cmd))
+			} else {
+				c.commands <- command{
+					id:     CMD_MSG,
+					client: c,
+					args:   args,
+				}
 			}
 		}
 	}
@@ -70,5 +70,5 @@ func (c *client) err(err error) {
 }
 
 func (c *client) msg(msg string) {
-	c.conn.Write([]byte(msg + "\n"))
+	c.conn.Write([]byte("# " + msg + "\n"))
 }
