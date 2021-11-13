@@ -21,18 +21,34 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	ch := make(chan string)
+	go printer(ch)
+	go listener(ch, c)
 
 	for {
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print(">> ")
 		text, _ := reader.ReadString('\n')
 		fmt.Fprintf(c, text+"\n")
 
-		message, _ := bufio.NewReader(c).ReadString('\n')
-		fmt.Print("->: " + message)
+
+
 		if strings.TrimSpace(string(text)) == "STOP" {
 			fmt.Println("TCP client exiting...")
 			return
 		}
+
+
+	}
+}
+func printer(ch chan string) {
+	for {
+		fmt.Printf(<-ch)
+	}
+}
+
+func listener(ch chan string, c net.Conn){
+	for {
+		message, _ := bufio.NewReader(c).ReadString('\n')
+		ch <- message
 	}
 }
