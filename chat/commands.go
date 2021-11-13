@@ -4,7 +4,7 @@ type commandID int
 
 // All possible commands
 const (
-	CMD_NICK commandID = iota
+	CMD_LOGIN commandID = iota
 	CMD_JOIN
 	CMD_ROOMS
 	CMD_MSG
