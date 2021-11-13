@@ -23,8 +23,8 @@ func newServer() *server {
 func (s *server) run() {
 	for cmd := range s.commands {
 		switch cmd.id {
-		case CMD_NICK:
-			s.nick(cmd.client, cmd.args)
+		case CMD_LOGIN:
+			s.username(cmd.client, cmd.args)
 		case CMD_JOIN:
 			s.join(cmd.client, cmd.args)
 		case CMD_ROOMS:
@@ -42,16 +42,16 @@ func (s *server) newClient(conn net.Conn) {
 
 	c := &client{
 		conn:     conn,
-		nick:     "Anonymous",
+		username:     "Anonymous",
 		commands: s.commands,
 	}
 
 	c.readInput()
 }
 
-func (s *server) nick(c *client, args []string) {
-	c.nick = args[1]
-	c.msg(fmt.Sprintf("Your nickname is now %s", c.nick))
+func (s *server) username(c *client, args []string) {
+	c.username = args[1]
+	c.msg(fmt.Sprintf("You are logged in as %s", c.username))
 }
 
 func (s *server) join(c *client, args []string) {
@@ -69,7 +69,7 @@ func (s *server) join(c *client, args []string) {
 
 	s.quitCurrentRoom(c)
 	c.room = r
-	r.broadcast(c, fmt.Sprintf("%s has joined the room.", c.nick))
+	r.broadcast(c, fmt.Sprintf("%s has joined the room.", c.username))
 	c.msg(fmt.Sprintf("Welcome to the room %s", r.name))
 }
 
@@ -88,7 +88,7 @@ func (s *server) msg(c *client, args []string) {
 		return
 	}
 
-	c.room.broadcast(c, c.nick+"- "+strings.Join(args[1:], " "))
+	c.room.broadcast(c, c.username+"- "+strings.Join(args[1:], " "))
 }
 
 func (s *server) quit(c *client, args []string) {
@@ -102,6 +102,6 @@ func (s *server) quit(c *client, args []string) {
 func (s *server) quitCurrentRoom(c *client) {
 	if c.room != nil {
 		delete(c.room.members, c.conn.RemoteAddr())
-		c.room.broadcast(c, fmt.Sprintf("%s has left the room.", c.nick))
+		c.room.broadcast(c, fmt.Sprintf("%s has left the room.", c.username))
 	}
 }
