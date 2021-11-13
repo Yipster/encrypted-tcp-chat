@@ -2,14 +2,13 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"net"
 	"strings"
 )
 
 type client struct {
 	conn     net.Conn
-	nick     string
+	username     string
 	room     *room
 	commands chan<- command
 }
@@ -22,14 +21,19 @@ func (c *client) readInput() {
 		}
 
 		msg = strings.Trim(msg, "\r\n")
-
 		args := strings.Split(msg, " ")
-		cmd := strings.TrimSpace(args[0])
 
+		var cmd string
+
+		if args[0][0] != '/'{
+			cmd = strings.TrimSpace(args[0])
+		}else{
+			cmd = msg
+		}
 		switch cmd {
-		case "/nick":
+		case "/login":
 			c.commands <- command{
-				id:     CMD_NICK,
+				id:     CMD_LOGIN,
 				client: c,
 				args:   args,
 			}
@@ -45,12 +49,6 @@ func (c *client) readInput() {
 				client: c,
 				args:   args,
 			}
-		case "/msg":
-			c.commands <- command{
-				id:     CMD_MSG,
-				client: c,
-				args:   args,
-			}
 		case "/quit":
 			c.commands <- command{
 				id:     CMD_QUIT,
@@ -58,15 +56,19 @@ func (c *client) readInput() {
 				args:   args,
 			}
 		default:
-			c.err(fmt.Errorf("Unknown command: %s", cmd))
+			c.commands <- command{
+				id:     CMD_MSG,
+				client: c,
+				args:   args,
+			}
 		}
 	}
 }
 
 func (c *client) err(err error) {
-	c.conn.Write([]byte("ERR: " + err.Error() + "\n"))
+	c.conn.Write([]byte("ERROR: " + err.Error() + "\n"))
 }
 
 func (c *client) msg(msg string) {
-	c.conn.Write([]byte("> " + msg + "\n"))
+	c.conn.Write([]byte(msg + "\n"))
 }
